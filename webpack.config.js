@@ -2,10 +2,12 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { loader } = require("mini-css-extract-plugin");
-const { access } = require("fs");
+// const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const { VueLoaderPlugin } = require("vue-loader");
 
 module.exports = {
+  mode: "development",
+  devtool: "source-map",
   entry: "./src/javascripts/main.js",
   output: {
     path: path.resolve(__dirname, "./dist"),
@@ -14,6 +16,33 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.vue/,
+        exclude: /node_modules/, // node_modules は除外
+        use: [
+          {
+            loader: "vue-loader",
+          },
+        ],
+      },
+      {
+        test: /\.js/,
+        exclude: /node_modules/, // node_modules は除外
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              presets: [
+                [
+                  "@babel/preset-env",
+                  { targets: " > 0.25%, not dead" }, // 0.25％より多くのシェアを持っているブラウザ
+                ],
+                ["@babel/preset-react"], // react
+              ],
+            },
+          },
+        ],
+      },
+      {
         test: /\.(css|sass|scss)/,
         use: [
           {
@@ -21,6 +50,9 @@ module.exports = {
           },
           {
             loader: "css-loader",
+            options: {
+              sourceMap: false, // デバッグ時にtrue
+            },
           },
           {
             loader: "sass-loader",
@@ -28,7 +60,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.(png|jpg)/,
+        test: /\.(png|jpg|jpeg)/,
         type: "asset/resource",
         generator: {
           filename: "images/[name][ext]",
@@ -41,6 +73,15 @@ module.exports = {
           //     name: "images/[name].[ext]",
           //   },
           // },
+          {
+            loader: "image-webpack-loader",
+            options: {
+              mozjpeg: {
+                progressive: true,
+                quality: 65,
+              },
+            },
+          },
         ],
       },
       {
@@ -60,6 +101,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: "./stylesheets/main.css",
     }),
